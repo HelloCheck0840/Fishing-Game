@@ -2,13 +2,13 @@ import pygame
 import random
 from sys import exit
 from items import item_data
+from image import *
 
 pygame.init()
 
 # settings
 resolution = [1920, 1080]
 FPS = 60
-BASE_PATH = 'image/'
 clock = pygame.time.Clock()
 
 # screen
@@ -24,25 +24,15 @@ def load_text(text = 'Hi HelloCheck!', size = 16, color = (255, 255, 255)):
 
 text = load_text('hello', 16, (255, 255, 255))
 
-# image
-def load_image(path, size, rotation):
-    image = pygame.image.load(BASE_PATH + path).convert()
-    image.set_colorkey((0, 0, 0))
-    image = pygame.transform.scale(image, size)
-    image = pygame.transform.rotate(image, rotation)
-    return image
-
-def draw_surface(size, color):
-    surf = pygame.Surface(size, pygame.SRCALPHA)
-    surf.fill(color)
-    return surf
-
 assets = {
     'player': load_image('placeholder.png', (16, 40), 0),
     'ocean': load_image('Background/Ocean.png', (480, 94), 0),
     'dock': load_image('Background/Dock.png', (352, 72), 0),
     'sky': load_image('Background/8bit-pixel-graphic-blue-sky-background-with-clouds-vector.png', (480, 270), 0),
-    'placeholder': load_image('placeholder.png', (100, 10), 0)
+    'bar': load_image_alpha('UI/bar.png', (200, 12), 0),
+    'bar_area': load_image_alpha('UI/area.png', (60, 12), 0),
+    'bar_bar': load_image_alpha('UI/bar2.png', (3, 14), 0),
+    'progress_bar': load_image_alpha('UI/progress-bar.png', (200, 6), 0),
 }
 
 # player
@@ -65,8 +55,10 @@ movement = [0, 0]
 
 # inventory
 class Inventory():
-    def __init__(self):
+    def __init__(self, cols, slot_size):
         self.items = {}
+        self.cols = cols
+        self.size = slot_size
 
     def add(self, num, count = 1):
         self.items[num] = item_data[num]
@@ -75,11 +67,16 @@ class Inventory():
     def remove(self, id, count = 1):
         self.items[id]['count'] -= count
 
-    def render(self):
-        print(self.items)
+    def render(self, surf):
+        idx_items = {key: i for i, key in enumerate(inv.items)}
+        surf.blit(draw_surface((480 // 1.5, 270 // 1.5), ('white')), (0, 0))
+        for i in self.items:
+            surf.blit(load_image(self.items[str(i)]['icon'], (self.size, self.size), 0), (idx_items[str(i)], 0))
 
 inv_open = False
-inv = Inventory()
+inv = Inventory(10, 16)
+for i in range(1, 17):
+    inv.add(str(i), 1)
 
 '''inv = assets['inventory']
 inv.set_alpha(240)
@@ -110,10 +107,11 @@ class Fish():
         self.progress += check
 
     def render(self, surf, percent):
-        surf.blit(assets['placeholder'], (0, 0))
-        surf.blit(draw_surface((30, 10), ('orange')), (self.area[0], 0))
-        surf.blit(draw_surface((2, 12), (255, 255, 255)), (self.bar, 0))
-        surf.blit(draw_surface((percent, 7), (100, 255, 100)), (0, 12))
+        surf.blit(assets['bar'], (140, 202))
+        surf.blit(assets['bar_area'], ((self.area[0] * 2) + 140, 202))
+        surf.blit(assets['bar_bar'], (min((self.bar * 2) + 140, 337), 201))
+        surf.blit(assets['progress_bar'], (140, 217))
+        surf.blit(draw_surface((percent * 2, 4), (153, 229, 80, 158)), (141, 218))
 
 center = random.randint(15, 75)
 bar_move = False
@@ -124,7 +122,7 @@ difference = 0
 fishing = False
 cooldown = 0
 
-fish = Fish(50, center, 60)
+fish = Fish(50, center, 90)
 
 # Background
 ocean_r = assets['ocean'].get_rect(bottomleft = (0, 270))
@@ -160,6 +158,8 @@ while True:
                     movement[0] = 1
                 if event.key == pygame.K_TAB:
                     inv_open = not inv_open
+                if event.key == pygame.K_g:
+                    inv.add('1', 1)
 
         if event.type == pygame.KEYUP:
             if event.key == pygame.K_a:
@@ -168,13 +168,12 @@ while True:
                 movement[1] = 0
 
         if event.type == pygame.MOUSEBUTTONDOWN:
-            if cooldown == 0:
+            if cooldown == 0 and inv_open == False:
                 if event.button == 1:
                     if fishing == False:
                         fishing = True
                     else:
-                        if inv_open == False:
-                            bar_move = True
+                        bar_move = True
 
             if event.button == 3:
                 fishing = False
@@ -195,14 +194,11 @@ while True:
         player.pos[0] = 73
 
     player.render(display)
-    
-    
 
     # Fishing
     percentage = (fish.progress / 300) * 100
 
     if fishing == True:
-
         fish.render(display, percentage)
         timer += 1
         if timer == 120:
@@ -238,16 +234,13 @@ while True:
             fishing = False
             inv.add(str(random.randint(1, 16)), 1)
             cooldown = 60
-        if fish.progress < 0:
-            fishing = False
+        '''if fish.progress < 0:
+            fishing = False'''
     else:
-        fish.progress = 60
-            
-
-    keys = pygame.key.get_pressed()
+        fish.progress = 90
 
     if inv_open == True:
-        pass
+        inv.render(display)
 
     if player_rect.collidepoint((mouse_x, mouse_y)):
         display.blit(text, (mouse_x, mouse_y))
