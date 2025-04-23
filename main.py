@@ -67,7 +67,7 @@ class Inventory():
     def remove(self, id, count = 1):
         self.items[id].count -= count
 
-    def render(self, surf):
+    def render(self, surf, icon):
         idx_items = {key: i for i, key in enumerate(inv.items)}
         size = [480 // 1.2, 270 // 1.2]
         box = pygame.Surface(size)
@@ -75,11 +75,12 @@ class Inventory():
         row = 0
         x = 0
         
-        
         surf.blit(box, (0, 0))
         for i in self.items:
-            image_icon = load_image(self.items[str(i)].icon)
-            image_icon = pygame.transform.scale(image_icon, (int(slot_size * 0.975), int(slot_size * 0.975)))
+            #image_icon = load_image(self.items[str(i)].icon)
+            #image_icon = pygame.transform.scale(image_icon, (int(slot_size * 0.975), int(slot_size * 0.975)))
+            image_icon = pygame.Surface((int(slot_size * 0.975), int(slot_size * 0.975)))
+            image_icon.fill('gray')
             surf.blit(image_icon, ((idx_items[str(i)] - (row * self.cols)) * slot_size, (row * slot_size) + 20))
             surf.blit(load_text(str(self.items[str(i)].count), int(slot_size) // 2, (255, 255, 255)), ((idx_items[str(i)] - (row * self.cols)) * slot_size + 2, (row * slot_size) + 22))
             x += 1
@@ -93,10 +94,7 @@ inv = Inventory(8)
 for i in range(1, 17):
     inv.add(str(i), 1)
 
-'''inv = assets['inventory']
-inv.set_alpha(240)
-inv_r = inv.get_rect(center = (display.get_width() // 2, display.get_height() // 2))
-slot = draw_surface((40, 40), ('white'))'''
+#slot = draw_surface((40, 40), ('white'))
 
 # Index
 class Index():
@@ -105,9 +103,19 @@ class Index():
     
     def add(self, item_id):
         self.index.append(item_data[str(item_id)])
+        self.index = list(dict.fromkeys(self.index))
+        print(self.index)
+    
+    def open(self, check):
+        for i in self.index:
+            load_text(self.index[str(i)].desc, 50, 'black')
 
     def render(self):
         pass
+
+idx = Index()
+for i in range(1, 17):
+    idx.add(i)
 
 # Fishing
 class Fish():
@@ -252,16 +260,18 @@ while True:
         if fish.bar < 0:
             fish.bar = 0
         if fish.progress > 300:
+            fish_id = random.randint(1, 16)
             fishing = False
-            inv.add(str(random.randint(1, 16)), 1)
+            inv.add(str(fish_id), 1)
+            idx.add(fish_id)
+            print(idx.index)
             cooldown = 60
         if fish.progress < 0:
             fishing = False
     else:
         fish.progress = 90
-
-    if inv_open == True:
-        inv.render(display)
+        if inv_open == True:
+            inv.render(display, 'e')
 
     if player_rect.collidepoint((mouse_x, mouse_y)):
         display.blit(text, (mouse_x, mouse_y))

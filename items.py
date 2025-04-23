@@ -6,9 +6,6 @@ class Item:
         self.icon = icon
         self.desc = description
 
-    def render(self):
-        pass
-
 item_data = {
     '1': Item('Atlantic Bluefin Tuna', 100, 0, 'placeholder.png', 'facts about fish here'),
     '2': Item('Atlantic Cod', 100, 0, 'placeholder.png', 'facts about fish here'),
@@ -27,5 +24,3 @@ item_data = {
     '15': Item('Chilean Jack Mackerel', 100, 0, 'placeholder.png', 'facts about fish here'),
     '16': Item('Chinook Salmon', 100, 0, 'placeholder.png', 'facts about fish here')
 }
-
-print(item_data['1'].name)
