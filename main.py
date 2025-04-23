@@ -1,8 +1,9 @@
-import pygame
+import pygame, time
 import random
 from sys import exit
 from items import item_data
 from image import *
+import e
 
 pygame.init()
 
@@ -25,14 +26,14 @@ def load_text(text = 'Hi HelloCheck!', size = 16, color = (255, 255, 255)):
 text = load_text('hello', 16, (255, 255, 255))
 
 assets = {
-    'player': load_image('placeholder.png', (16, 40), 0),
-    'ocean': load_image('Background/Ocean.png', (480, 94), 0),
-    'dock': load_image('Background/Dock.png', (352, 72), 0),
-    'sky': load_image('Background/8bit-pixel-graphic-blue-sky-background-with-clouds-vector.png', (480, 270), 0),
-    'bar': load_image_alpha('UI/bar.png', (200, 12), 0),
-    'bar_area': load_image_alpha('UI/area.png', (60, 12), 0),
-    'bar_bar': load_image_alpha('UI/bar2.png', (3, 14), 0),
-    'progress_bar': load_image_alpha('UI/progress-bar.png', (200, 6), 0),
+    'player': load_image('placeholderp.png'),
+    'ocean': load_image('Background/Ocean.png'),
+    'dock': load_image('Background/Dock.png'),
+    'sky': load_image('Background/8bit-pixel-graphic-blue-sky-background-with-clouds-vector.png'),
+    'bar': load_image_alpha('UI/bar.png'),
+    'bar_area': load_image_alpha('UI/area.png'),
+    'bar_bar': load_image_alpha('UI/bar2.png'),
+    'progress_bar': load_image_alpha('UI/progress-bar.png'),
 }
 
 # player
@@ -55,26 +56,40 @@ movement = [0, 0]
 
 # inventory
 class Inventory():
-    def __init__(self, cols, slot_size):
+    def __init__(self, cols):
         self.items = {}
         self.cols = cols
-        self.size = slot_size
 
     def add(self, num, count = 1):
         self.items[num] = item_data[num]
-        self.items[num]['count'] += count
+        self.items[num].count += count
 
     def remove(self, id, count = 1):
-        self.items[id]['count'] -= count
+        self.items[id].count -= count
 
     def render(self, surf):
         idx_items = {key: i for i, key in enumerate(inv.items)}
-        surf.blit(draw_surface((480 // 1.5, 270 // 1.5), ('white')), (0, 0))
+        size = [480 // 1.2, 270 // 1.2]
+        box = pygame.Surface(size)
+        slot_size = size[0] // self.cols
+        row = 0
+        x = 0
+        
+        
+        surf.blit(box, (0, 0))
         for i in self.items:
-            surf.blit(load_image(self.items[str(i)]['icon'], (self.size, self.size), 0), (idx_items[str(i)], 0))
+            image_icon = load_image(self.items[str(i)].icon)
+            image_icon = pygame.transform.scale(image_icon, (int(slot_size * 0.975), int(slot_size * 0.975)))
+            surf.blit(image_icon, ((idx_items[str(i)] - (row * self.cols)) * slot_size, (row * slot_size) + 20))
+            surf.blit(load_text(str(self.items[str(i)].count), int(slot_size) // 2, (255, 255, 255)), ((idx_items[str(i)] - (row * self.cols)) * slot_size + 2, (row * slot_size) + 22))
+            x += 1
+            if x == self.cols:
+                x = 0
+                row += 1
 
 inv_open = False
-inv = Inventory(10, 16)
+inv = Inventory(8)
+
 for i in range(1, 17):
     inv.add(str(i), 1)
 
@@ -129,8 +144,13 @@ ocean_r = assets['ocean'].get_rect(bottomleft = (0, 270))
 dock_r = assets['dock'].get_rect(topleft = (64, 125))
 sky_r = assets['sky'].get_rect(bottomleft = (ocean_r.left, ocean_r.top))
 
+prevtime = time.time()
+
 # main loop
 while True:
+    dt = time.time() - prevtime
+    prevtime = time.time()
+
     screen.blit(pygame.transform.scale(display, resolution), (0, 0))
     display.fill((0, 0, 0))
     display.blit(assets['sky'], sky_r)
@@ -151,15 +171,16 @@ while True:
             exit()
 
         if event.type == pygame.KEYDOWN:
-            if fishing == False:
+            if inv_open == False:
                 if event.key == pygame.K_d:
                     movement[1] = 1
                 if event.key == pygame.K_a:
                     movement[0] = 1
-                if event.key == pygame.K_TAB:
-                    inv_open = not inv_open
                 if event.key == pygame.K_g:
                     inv.add('1', 1)
+            if event.key == pygame.K_TAB:
+                inv_open = not inv_open
+            
 
         if event.type == pygame.KEYUP:
             if event.key == pygame.K_a:
@@ -234,8 +255,8 @@ while True:
             fishing = False
             inv.add(str(random.randint(1, 16)), 1)
             cooldown = 60
-        '''if fish.progress < 0:
-            fishing = False'''
+        if fish.progress < 0:
+            fishing = False
     else:
         fish.progress = 90
 
