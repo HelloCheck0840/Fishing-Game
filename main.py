@@ -3,7 +3,6 @@ import random
 from sys import exit
 from items import item_data
 from image import *
-import e
 
 pygame.init()
 
@@ -34,6 +33,7 @@ assets = {
     'bar_area': load_image_alpha('UI/area.png'),
     'bar_bar': load_image_alpha('UI/bar2.png'),
     'progress_bar': load_image_alpha('UI/progress-bar.png'),
+    'book': load_image_alpha('UI/book.png')
 }
 
 # player
@@ -97,6 +97,8 @@ for i in range(1, 17):
 #slot = draw_surface((40, 40), ('white'))
 
 # Index
+book = assets['book']
+book = pygame.transform.scale(book, (book.get_width() * 2, book.get_height() * 2))
 class Index():
     def __init__(self):
         self.index = []
@@ -104,18 +106,25 @@ class Index():
     def add(self, item_id):
         self.index.append(item_data[str(item_id)])
         self.index = list(dict.fromkeys(self.index))
-        print(self.index)
-    
-    def open(self, check):
-        for i in self.index:
-            load_text(self.index[str(i)].desc, 50, 'black')
 
-    def render(self):
-        pass
+    def open(self, surf, page):
+
+        surf.blit(load_text(self.index[page].name, 16, 'black'), (40, 30))
+        surf.blit(load_image(self.index[page].icon), (40, 50))
+        surf.blit(load_text(self.index[page].desc, 16, 'black'), (190, 30))
+
+    def render(self, surf):
+        surf.blit(book, (0, 0))
 
 idx = Index()
+page = 0
+closed = True
 for i in range(1, 17):
     idx.add(i)
+
+for i in idx.index[page].desc:
+    print(i)
+#idx.index[page].desc
 
 # Fishing
 class Fish():
@@ -188,7 +197,8 @@ while True:
                     inv.add('1', 1)
             if event.key == pygame.K_TAB:
                 inv_open = not inv_open
-            
+            if event.key == pygame.K_j:
+                closed = not closed
 
         if event.type == pygame.KEYUP:
             if event.key == pygame.K_a:
@@ -272,6 +282,11 @@ while True:
         fish.progress = 90
         if inv_open == True:
             inv.render(display, 'e')
+
+    if closed == False:
+        idx.render(display)
+        if len(idx.index) > 0:
+            idx.open(display, page)
 
     if player_rect.collidepoint((mouse_x, mouse_y)):
         display.blit(text, (mouse_x, mouse_y))
