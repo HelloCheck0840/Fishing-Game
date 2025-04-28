@@ -1,5 +1,6 @@
 import pygame, time
 import random
+import re
 from sys import exit
 from items import item_data
 from image import *
@@ -20,6 +21,11 @@ inventory_display = pygame.Surface(resolution)
 def load_text(text = 'Hi HelloCheck!', size = 16, color = (255, 255, 255)):
     font = pygame.font.Font('text/m6x11.ttf', size)
     text = font.render(text, False, color)
+    return text
+
+def new_line(text, length):
+    lines = [text[i:i+length] + '\n' for i in range(0, len(text), length)]
+    text = ''.join(lines)
     return text
 
 text = load_text('hello', 16, (255, 255, 255))
@@ -108,10 +114,9 @@ class Index():
         self.index = list(dict.fromkeys(self.index))
 
     def open(self, surf, page):
-
-        surf.blit(load_text(self.index[page].name, 16, 'black'), (40, 30))
-        surf.blit(load_image(self.index[page].icon), (40, 50))
-        surf.blit(load_text(self.index[page].desc, 16, 'black'), (190, 30))
+        surf.blit(load_text(self.index[page].name, 16, 'black'), (30, 30))
+        surf.blit(load_image(self.index[page].icon), (30, 50))
+        surf.blit(load_text(new_line(self.index[page].desc, 25), 14, 'black'), (190, 25))
 
     def render(self, surf):
         surf.blit(book, (0, 0))
@@ -122,9 +127,9 @@ closed = True
 for i in range(1, 17):
     idx.add(i)
 
-for i in idx.index[page].desc:
-    print(i)
-#idx.index[page].desc
+'''for i in idx.index[page].desc:
+    print(i)'''
+print(len(idx.index[page].desc))
 
 # Fishing
 class Fish():
@@ -188,7 +193,7 @@ while True:
             exit()
 
         if event.type == pygame.KEYDOWN:
-            if inv_open == False:
+            if inv_open == False and closed == True:
                 if event.key == pygame.K_d:
                     movement[1] = 1
                 if event.key == pygame.K_a:
@@ -283,10 +288,22 @@ while True:
         if inv_open == True:
             inv.render(display, 'e')
 
+    keys = pygame.key.get_just_pressed()
+
+    if page < 0:
+        page = 0
+    if page > 15:
+        page = 15
+
     if closed == False:
         idx.render(display)
         if len(idx.index) > 0:
             idx.open(display, page)
+
+        if keys[pygame.K_a]:
+            page -= 1
+        if keys[pygame.K_d]:
+            page += 1
 
     if player_rect.collidepoint((mouse_x, mouse_y)):
         display.blit(text, (mouse_x, mouse_y))
