@@ -29,6 +29,10 @@ def new_line(text, length):
     text = ''.join(lines)
     return text
 
+def cen_surface(surfa, display = [480, 270]):
+    cen = [(display[0] // 2) - (surfa.get_width() // 2), (display[0] // 2) - (surfa.get_height() // 2)]
+    return cen
+
 text = load_text('hello', 16, (255, 255, 255))
 
 assets = {
