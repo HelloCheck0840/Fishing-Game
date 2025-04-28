@@ -23,6 +23,7 @@ def load_text(text = 'Hi HelloCheck!', size = 16, color = (255, 255, 255)):
     text = font.render(text, False, color)
     return text
 
+# Credits to CrazyChucky for these 2 lines of code in stack overflow
 def new_line(text, length):
     lines = [text[i:i+length] + '\n' for i in range(0, len(text), length)]
     text = ''.join(lines)
@@ -88,7 +89,8 @@ class Inventory():
             image_icon = pygame.Surface((int(slot_size * 0.975), int(slot_size * 0.975)))
             image_icon.fill('gray')
             surf.blit(image_icon, ((idx_items[str(i)] - (row * self.cols)) * slot_size, (row * slot_size) + 20))
-            surf.blit(load_text(str(self.items[str(i)].count), int(slot_size) // 2, (255, 255, 255)), ((idx_items[str(i)] - (row * self.cols)) * slot_size + 2, (row * slot_size) + 22))
+            surf.blit(load_text(str(self.items[str(i)].count), int(slot_size) // 3, (255, 255, 255)), ((idx_items[str(i)] - (row * self.cols)) * slot_size + 2, (row * slot_size) + 22))
+            surf.blit(load_text(str(self.items[str(i)].value), int(slot_size) // 5, (255, 255, 255)), ((idx_items[str(i)] - (row * self.cols)) * slot_size + 2, (row * slot_size) + 58))
             x += 1
             if x == self.cols:
                 x = 0
@@ -126,10 +128,6 @@ page = 0
 closed = True
 for i in range(1, 17):
     idx.add(i)
-
-'''for i in idx.index[page].desc:
-    print(i)'''
-print(len(idx.index[page].desc))
 
 # Fishing
 class Fish():
@@ -193,17 +191,19 @@ while True:
             exit()
 
         if event.type == pygame.KEYDOWN:
-            if inv_open == False and closed == True:
+            if inv_open == False and closed == True and fishing == False:
                 if event.key == pygame.K_d:
                     movement[1] = 1
                 if event.key == pygame.K_a:
                     movement[0] = 1
                 if event.key == pygame.K_g:
                     inv.add('1', 1)
-            if event.key == pygame.K_TAB:
-                inv_open = not inv_open
-            if event.key == pygame.K_j:
-                closed = not closed
+            if closed == True:
+                if event.key == pygame.K_TAB:
+                    inv_open = not inv_open
+            if inv_open == False:
+                if event.key == pygame.K_j:
+                    closed = not closed
 
         if event.type == pygame.KEYUP:
             if event.key == pygame.K_a:
@@ -214,10 +214,11 @@ while True:
         if event.type == pygame.MOUSEBUTTONDOWN:
             if cooldown == 0 and inv_open == False:
                 if event.button == 1:
-                    if fishing == False:
-                        fishing = True
-                    else:
-                        bar_move = True
+                    if player.pos[0] > 387 or player.pos[0] < 78:
+                        if fishing == False:
+                            fishing = True
+                        else:
+                            bar_move = True
 
             if event.button == 3:
                 fishing = False
@@ -279,7 +280,6 @@ while True:
             fishing = False
             inv.add(str(fish_id), 1)
             idx.add(fish_id)
-            print(idx.index)
             cooldown = 60
         if fish.progress < 0:
             fishing = False
