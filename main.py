@@ -66,6 +66,7 @@ class Inventory():
     def __init__(self, cols):
         self.items = {}
         self.cols = cols
+        self.pos = []
 
     def add(self, num, count = 1):
         self.items[num] = item_data[num]
@@ -91,6 +92,7 @@ class Inventory():
             surf.blit(image_icon, ((idx_items[str(i)] - (row * self.cols)) * slot_size, (row * slot_size) + 20))
             surf.blit(load_text(str(self.items[str(i)].count), int(slot_size) // 3, (255, 255, 255)), ((idx_items[str(i)] - (row * self.cols)) * slot_size + 2, (row * slot_size) + 22))
             surf.blit(load_text(str(self.items[str(i)].value), int(slot_size) // 5, (255, 255, 255)), ((idx_items[str(i)] - (row * self.cols)) * slot_size + 2, (row * slot_size) + 58))
+            surf.blit(load_text('Inventory', 20), (165, 0))
             x += 1
             if x == self.cols:
                 x = 0
@@ -115,13 +117,13 @@ class Index():
         self.index.append(item_data[str(item_id)])
         self.index = list(dict.fromkeys(self.index))
 
-    def open(self, surf, page):
-        surf.blit(load_text(self.index[page].name, 16, 'black'), (30, 30))
-        surf.blit(load_image(self.index[page].icon), (30, 50))
-        surf.blit(load_text(new_line(self.index[page].desc, 25), 14, 'black'), (190, 25))
+    def open(self, surf, page, pos = [0, 0]):
+        surf.blit(load_text(self.index[page].name, 16, 'black'), (30 + pos[0], 30 + pos[1]))
+        surf.blit(load_image(self.index[page].icon), (30 + pos[0], 50 + pos[1]))
+        surf.blit(load_text(new_line(self.index[page].desc, 25), 14, 'black'), (190 + pos[0], 25 + pos[1]))
 
-    def render(self, surf):
-        surf.blit(book, (0, 0))
+    def render(self, surf, pos = [0, 0]):
+        surf.blit(book, (0 + pos[0], 0 + pos[1]))
 
 idx = Index()
 page = 0
@@ -296,9 +298,9 @@ while True:
         page = 15
 
     if closed == False:
-        idx.render(display)
+        idx.render(display, [65, 25])
         if len(idx.index) > 0:
-            idx.open(display, page)
+            idx.open(display, page, [65, 25])
 
         if keys[pygame.K_a]:
             page -= 1
