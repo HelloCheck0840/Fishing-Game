@@ -14,8 +14,10 @@ clock = pygame.time.Clock()
 
 # screen
 screen = pygame.display.set_mode(resolution)
+pygame.display.set_caption('Fishing Game')
+fish_ico = pygame.image.load('image/fish.ico')
+pygame.display.set_icon(fish_ico)
 display = pygame.Surface((480, 270))
-inventory_display = pygame.Surface(resolution)
 
 # text
 def load_text(text = 'Hi HelloCheck!', size = 16, color = (255, 255, 255)):
