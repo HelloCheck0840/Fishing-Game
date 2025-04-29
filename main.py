@@ -18,28 +18,33 @@ step = 0
 # screen
 screen = pygame.display.set_mode(resolution)
 pygame.display.set_caption('Fishing Game')
-fish_ico = pygame.image.load('image/fish.ico')
+fish_ico = pygame.image.load('image/icon.ico')
 pygame.display.set_icon(fish_ico)
 display = pygame.Surface(res)
 
 # text
+# Creates text
 def load_text(text = 'Hi HelloCheck!', size = 16, color = (255, 255, 255)):
     font = pygame.font.Font('text/m6x11.ttf', size)
     text = font.render(text, False, color)
     return text
 
+# Creates new line when it reaches a certain length
 # Credits to CrazyChucky for these 2 lines of code in stack overflow
 def new_line(text, length):
     lines = [text[i:i+length] + '\n' for i in range(0, len(text), length)]
     text = ''.join(lines)
     return text
 
+# Returns the numbers that centers a surface on another Surface
 def cen_surface(surfa, display = res):
     cen = [(display[0] // 2) - (surfa.get_width() // 2), (display[1] // 2) - (surfa.get_height() // 2)]
     return cen
 
 text = load_text('hello', 16, (255, 255, 255))
 
+# Assets
+# The sky and the clouds are from https://free-game-assets.itch.io/free-sky-with-clouds-background-pixel-art-set
 assets = {
     'player': load_image_alpha('player.png'),
     'ocean': load_image('Background/Ocean.png'),
@@ -58,6 +63,9 @@ assets = {
 
 # Animation Handler
 # Code from Coding With Russ on youtube
+# The video https://www.youtube.com/watch?v=nXOVcOBqFwM
+# And www.youtube.com/watch?v=M6e3_8LHc7A
+
 class SpriteSheet():
     def __init__(self, image):
         self.sheet = image
@@ -86,15 +94,16 @@ for animation in animation_steps:
 
 # player
 class Entity():
-    def __init__(self, pos, e_type, animations, frame, reverse, action):
+    def __init__(self, pos, animations, frame, reverse, action):
         self.pos = list(pos)
         self.velocity = 0
-        self.type = e_type
         self.animation = animations
         self.frame = frame
         self.flip = reverse
         self.action = action
-
+    
+    # Movement
+    # Update method from DaFluffyPotato on Youtube
     def update(self, movement = (0, 0)):
         move = [movement[0] + self.velocity, movement[1]]
 
@@ -104,7 +113,7 @@ class Entity():
     def render(self, surf):
         surf.blit(pygame.transform.flip(self.animation[self.action][self.frame], self.flip, False), self.pos)
 
-player = Entity([240, 100], 'player', animation_list, 0, False, 0)
+player = Entity([240, 100], animation_list, 0, False, 0)
 
 movement = [0, 0]
 
@@ -115,13 +124,16 @@ class Inventory():
         self.cols = cols
         self.pos = list(pos)
 
+    # Adds item
     def add(self, num, count = 1):
         self.items[num] = item_data[num]
         self.items[num].count += count
 
+    # Removes item
     def remove(self, id, count = 1):
         self.items[id].count -= count
 
+    # Draws the whole inventory
     def render(self, surf):
         idx_items = {key: i for i, key in enumerate(inv.items)}
         size = [480 // 1.2, 270 // 1.2]
@@ -150,20 +162,24 @@ inv = Inventory(8, cen_surface(pygame.Surface((480 // 1.2, 270 // 1.2)), res))
 
 # Index
 book = assets['book']
+# Scales the book by 2
 book = pygame.transform.scale(book, (book.get_width() * 2, book.get_height() * 2))
 class Index():
     def __init__(self):
         self.index = []
     
+    # Adds item to index
     def add(self, item_id):
         self.index.append(item_data[str(item_id)])
         self.index = list(dict.fromkeys(self.index))
 
+    # renders the information
     def open(self, surf, page, pos = [0, 0]):
         surf.blit(load_text(self.index[page].name, 16, 'black'), (30 + pos[0], 30 + pos[1]))
         surf.blit(load_image('BookFish/' + self.index[page].book), (30 + pos[0], 50 + pos[1]))
         surf.blit(load_text(new_line(self.index[page].desc, 25), 14, 'black'), (190 + pos[0], 25 + pos[1]))
 
+    # Opens book
     def render(self, surf, pos = [0, 0]):
         surf.blit(book, (0 + pos[0], 0 + pos[1]))
 
@@ -179,10 +195,12 @@ class Fish():
         self.area = [self.center - 15, self.center + 15]
         self.progress = progress
 
+    # Handles minigame
     def minigame(self, movement, check):
         self.bar += movement
         self.progress += check
 
+    # Shows minigame
     def render(self, surf, percent):
         surf.blit(assets['bar'], (140, 202))
         surf.blit(assets['bar_area'], ((self.area[0] * 2) + 140, 202))
@@ -190,6 +208,7 @@ class Fish():
         surf.blit(assets['progress_bar'], (140, 217))
         surf.blit(draw_surface((percent * 2, 4), (153, 229, 80, 158)), (141, 218))
 
+# variables for minigame
 center = random.randint(15, 75)
 bar_move = False
 inside = 0
@@ -214,6 +233,7 @@ interior_r = assets['inside'].get_rect(bottomleft = (dock_r.centerx - (assets['i
 
 # main loop
 while True:
+    # Updates animation
     current_time = pygame.time.get_ticks()
     if current_time - last_update >= animation_cooldown:
         last_update = current_time
@@ -221,6 +241,7 @@ while True:
         if player.frame >= len(animation_list[player.action]):
             player.frame = 0
 
+    # Background
     screen.blit(pygame.transform.scale(display, resolution), (0, 0))
     display.fill((0, 0, 0))
     display.blit(assets['sky'], sky_r)
@@ -232,10 +253,7 @@ while True:
     display.blit(assets['dock'], dock_r)
     display.blit(assets['ocean'], ocean_r)
 
-    mouse_x, mouse_y = pygame.mouse.get_pos()
-    mouse_x //= resolution[0] // display.get_width()
-    mouse_y //= resolution[1] // display.get_height()
-
+    # Cooldown for fishing
     cooldown -= 1
     cooldown = max(cooldown, 0)
 
@@ -247,6 +265,7 @@ while True:
 
         if event.type == pygame.KEYDOWN:
             if inv_open == False and op == True and fishing == False:
+                # Movement
                 if event.key == pygame.K_d:
                     movement[1] = 1
                     player.flip = False
@@ -259,26 +278,35 @@ while True:
                     player.frame = 0
 
             if op == True:
+                # Opens inventory
                 if event.key == pygame.K_TAB:
                     inv_open = not inv_open
+
+                    # Tutorial
                     if tutorial and step == 1 and inv_open:
                         step += 1
                     elif tutorial and step == 2 and not inv_open:
                         step += 1
+
             if inv_open == False:
+                # Opens book
                 if event.key == pygame.K_j:
                     op = not op
+
+                    # Tutorial
                     if tutorial and step == 3 and not op:
                        step += 1
                     if tutorial and step == 4 and op:
                        step += 1
 
+        # Stops movement
         if event.type == pygame.KEYUP:
             if event.key == pygame.K_a:
                 movement[0] = 0
             if event.key == pygame.K_d:
                 movement[1] = 0
 
+        # Fishing
         if event.type == pygame.MOUSEBUTTONDOWN:
             if cooldown == 0 and inv_open == False:
                 if event.button == 1:
@@ -287,27 +315,32 @@ while True:
                             fishing = True
                         else:
                             bar_move = True
-
+            
+            # Cancels fishing
             if event.button == 3:
                 fishing = False
-                print(inv.items)
 
+        # Moves the bar to the left if the mouse is not held
         if event.type == pygame.MOUSEBUTTONUP:
             if event.button == 1:
                 if inv_open == False:
                     bar_move = -True
 
+    # Movement for player
     player.update((movement[1] - movement[0], 0))
+    # Animation change for player
     if movement[0] or movement[1] == 0:
         player.action = 0
     if movement[0] or movement[1] == 1:
         player.action = 1
 
+    # Limits the player into a area
     if player.pos[0] > 391:
         player.pos[0] = 391
     if player.pos[0] < 73:
         player.pos[0] = 73
 
+    # Renders the player
     player.render(display)
 
     # Fishing
@@ -317,6 +350,8 @@ while True:
         fish.render(display, percentage)
         fish_id = random.randint(1, 16)
         timer += 1
+
+        # Changes position every 2 seconds
         if timer == 120:
             timer = 0
             i = random.randint(-30, 30)
@@ -332,9 +367,13 @@ while True:
                 fish.area[0] -= difference
                 fish.area[1] -= difference
 
+        # Makes progress go up if the bar is in the area
         if fish.bar >= fish.area[0] and fish.bar <= fish.area[1]:
             inside = 1
+        
+        # Makes progress go down if the bar is not in the area
         else:
+            # Prevents progress from going below 0
             if fish.progress <= 0:
                 fish.progress = 0
             if fish.progress > 0:
@@ -342,41 +381,55 @@ while True:
                 
         fish.minigame(bar_move, inside)
 
+        # Limits where the bar can go
         if fish.bar > 100:
             fish.bar = 100
         if fish.bar < 0:
             fish.bar = 0
+
+        # Fish is caught
         if fish.progress > 300:
             fishing = False
             inv.add(str(fish_id), 1)
             idx.add(fish_id)
             cooldown = 60
+
+            # Tutorial
             if tutorial and step == 0:
                 step += 1
+
+        # Fish is not caught
         if fish.progress < 0:
             fishing = False
     else:
+        # Resets the fish
         fish.progress = 90
+
+        # Can open inventory when not fishing
         if inv_open == True:
             inv.render(display)
 
     keys = pygame.key.get_just_pressed()
 
+    # Prevents page from going out of bounds
     if page < 0:
         page = 0
     if page > len(idx.index) - 1:
         page = len(idx.index) - 1 
 
+    # Opens and closes the book
     if op == False:
         idx.render(display, [65, 25])
         if len(idx.index) > 0:
             idx.open(display, page, [65, 25])
-
+        
+        # Changes page number
         if keys[pygame.K_a]:
             page -= 1
         if keys[pygame.K_d]:
             page += 1
 
+    # The tutorial
     if tutorial == True:
         if step == 0:
             display.blit(load_text('Go to one of the sides to fish!', color = 'black'), (0, 0))
@@ -391,5 +444,7 @@ while True:
             display.blit(load_text('Press "J" again to close the book.', color = 'black'), (0, 20))
         else:
             tutorial = False
+    
+    # Updates the screen
     clock.tick(FPS)
     pygame.display.flip()
