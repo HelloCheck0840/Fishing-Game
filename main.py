@@ -12,7 +12,7 @@ resolution = [1920, 1080]
 res = [480, 270]
 FPS = 60
 clock = pygame.time.Clock()
-tutorial = False
+tutorial = True
 step = 0
 
 # screen
